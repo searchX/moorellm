@@ -194,6 +194,9 @@ User Identified: {'user_name': 'Harishankar', 'phone_number': '1234567890'}
 
 More examples can be found in the [examples](examples) directory.
 
+## Full Documentation
+The full documentation can be found [here](https://searchx.github.io/moorellm/)
+
 ## Notes
 - The MooreLLM is a very basic implementation, and can be extended to support more complex use-cases.
 - The FSM is designed to be used with OpenAI's GPT-4o+ (as it uses structured responses), but can be used with any other model as well (with some modification).
