@@ -17,6 +17,9 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[project.urls]
+Homepage = "https://github.com/searchX/moorellm"
+
 [tool.pdm.dev-dependencies]
 dev = [
     "pytest>=8.3.2",
