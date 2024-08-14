@@ -128,7 +128,21 @@ Notice the transitions, for state `start` we defined only one transition to `STA
 Note: Default transitions are always available, so if the user input does not match any of the transitions, the AI will move to the same state (ie loop back).
 
 ### User identification
+```python
+import openai
+from pydantic import BaseModel
+from moorellm import MooreFSM
+from moorellm.models import MooreRun
 
+# Create the FSM
+fsm = MooreFSM(initial_state="START", end_state="IDENTIFIED")
+
+
+class UserIdentificationResponse(BaseModel):
+    content: str
+    user_name: str
+    phone_number: str
+```
 ```python
 @fsm.state(
     state_key="START",
@@ -179,7 +193,7 @@ AI: Thanks for Identifying yourself.
 User Identified: {'user_name': 'Harishankar', 'phone_number': '1234567890'}
 ```
 
-More examples can be found in the [examples](moorellm/tree/main/examples) directory.
+More examples can be found in the [examples](examples) directory.
 
 ## Notes
 - The MooreLLM is a very basic implementation, and can be extended to support more complex use-cases.
