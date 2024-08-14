@@ -1,0 +1,35 @@
+[project]
+name = "MooreLLM"
+version = "0.1.0"
+description = "Moore's State Machine based Agent LLMs"
+authors = [
+    {name = "Harishankar Kumar", email = "hari01584@gmail.com"},
+]
+dependencies = [
+    "pydantic>=2.8.2",
+    "openai>=1.40.6",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest>=8.3.2",
+    "openai-responses>=0.9.0",
+    "pytest-asyncio>=0.23.8",
+    "sphinx>=7.4.7",
+    "piccolo-theme>=0.23.0",
+]
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.scripts]
+test = "pytest ."
+docs = "sh -c 'make -C docs/ clean html && make -C docs/ html'"
+gh = "sh -c 'git push origin --delete gh-pages ; pdm run docs && cp -r docs/_build/html docs/gh-output-html/ && git add docs/gh-output-html && git commit -m 'Deploy' && git subtree push --prefix docs/gh-output-html origin gh-pages && rm -rf docs/gh-output-html'"
