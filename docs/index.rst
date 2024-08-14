@@ -8,8 +8,6 @@ Welcome to MooreLLM's documentation!
 
 MooreLLM is package for creating agentic applications using OpenAI and traditional state machines.
 
-.. mdinclude:: ../README.md
-
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
