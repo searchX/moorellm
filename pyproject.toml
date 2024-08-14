@@ -37,4 +37,4 @@ distribution = true
 [tool.pdm.scripts]
 test = "pytest ."
 docs = "sh -c 'make -C docs/ clean html && make -C docs/ html'"
-gh = "sh -c 'git push origin --delete gh-pages ; pdm run docs && cp -r docs/_build/html docs/gh-output-html/ && git add docs/gh-output-html && git commit -m 'Deploy' && git subtree push --prefix docs/gh-output-html origin gh-pages && rm -rf docs/gh-output-html'"
+gh = "sh -c 'git push origin --delete gh-pages ; pdm run docs && cp -r docs/_build/html docs/gh-output-html/ && touch docs/gh-output-html/.nojekyll && git add docs/gh-output-html && git commit -m 'Deploy' && git subtree push --prefix docs/gh-output-html origin gh-pages && rm -rf docs/gh-output-html'"
