@@ -4,9 +4,10 @@
    contain the root `toctree` directive.
 
 Welcome to MooreLLM's documentation!
-======================
+====================================
 
-MooreLLM is package for creating agentic applications using OpenAI and traditional state machines.
+.. include:: ../README.md
+   :parser: myst_parser.sphinx_
 
 .. toctree::
    :maxdepth: 3

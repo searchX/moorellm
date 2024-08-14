@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    'myst_parser',
 ]
 autosummary_generate = True
 templates_path = ["_templates"]

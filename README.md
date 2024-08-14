@@ -13,7 +13,7 @@ ie the conversation pattern will follow a specific flow, and the bot SHOULD NEVE
 ### The current approach (Traditional Approach)
 Now imagine a function based approach, where the bot can ask for the name, greet the user, and ask for the query, all at the same time.. this is not a very good approach as the bot can ask for the query even before the user has provided the name.. this can lead to a bad user experience and potentially uncontrolled behavior.
 
-<img src="./images/traditional_approach.png" height="512">
+<img src="https://raw.githubusercontent.com/searchX/moorellm/main/images/traditional_approach.png" height="512">
 
 Current approach of mitigating such issues is instructing in system_prompt about the set order/sequence, but this is error prone and not very flexible.
 
@@ -23,8 +23,7 @@ Create states for each of the conversation steps, and transitions between them..
 ie now I will have seperate system_prompt for both greeting and asking for the query, so *until I am in greet user state, I will only use the system_prompt for greeting, and once I have moved to ask_for_query state, I will only use the system_prompt for asking for the query*.
 
 <!-- ![MooreLLM Approach]() -->
-<img src="./images/moore_approach.png" height="512">
-
+<img src="https://raw.githubusercontent.com/searchX/moorellm/main/images/moore_approach.png" height="512">
 
 ## What is an Agentic AI Application?
 It is an application that can act on its own, without the need for human intervention. It can make decisions, take actions, and interact with the environment.. for example
@@ -36,7 +35,7 @@ It is an application that can act on its own, without the need for human interve
 A Finite State Machine (FSM) is a mathematical model of computation. It is a set of states, transitions, and actions. The machine can be in only one state at a time, and it can change from one state to another in response to some inputs. FSMs are widely used in many applications, such as games, control systems, and natural language processing.
 
 example of a FSM:
-![FSM Example](/images/01_bulb_state_diagram.png)
+![FSM Example](https://raw.githubusercontent.com/searchX/moorellm/main/images/01_bulb_state_diagram.png)
 
 ## How to Design an Agentic AI Application using MooreLLM?
 To use MooreLLM, you need to define the states and transitions! Each state will have base system prompts, and transitions will have the conditions to move from one state to another, for each state you can even parse complex generated output or make use of context variables. (We will see this in the examples)

@@ -27,6 +27,8 @@ dev = [
     "pytest-asyncio>=0.23.8",
     "sphinx>=7.4.7",
     "piccolo-theme>=0.23.0",
+    "m2r2>=0.3.3.post2",
+    "myst-parser>=3.0.1",
 ]
 
 [tool.pdm]
