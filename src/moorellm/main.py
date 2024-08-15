@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Callable, Dict, Any, Literal, Optional, Type, Union
 from pydantic import BaseModel, ValidationError, create_model
 import openai
+import jinja2
 
 # Setup logging
 import logging
@@ -145,9 +146,15 @@ class MooreFSM:
             raise StateMachineError(f"State {self._state} not found in states.")
 
         state_system_prompt = current_state.system_prompt
+
+        # Pre-process system prompt with Jinja2
+        template = jinja2.Template(state_system_prompt)
+        state_system_prompt = template.render(self.user_defined_context)
+
         if current_state.pre_process_system_prompt:
-            state_system_prompt = current_state.pre_process_system_prompt(
-                state_system_prompt, self
+            state_system_prompt = (
+                current_state.pre_process_system_prompt(state_system_prompt, self)
+                or state_system_prompt
             )
 
         processed_system_prompt = _add_transitions(state_system_prompt, current_state)
@@ -280,9 +287,18 @@ class MooreFSM:
         self.user_defined_context[key] = value
         logger.debug(f"User defined context set: {key}={value}")
 
+    def set_context_data_dict(self, data: Dict[str, Any]):
+        """Set data into user defined context."""
+        self.user_defined_context.update(data)
+        logger.debug(f"User defined context set: {data}")
+
     def get_context_data(self, key: str, default: Any = None):
         """Get data from user defined context."""
         return self.user_defined_context.get(key, default)
+
+    def get_full_context_data(self):
+        """Get full user defined context."""
+        return self.user_defined_context
 
     def is_completed(self):
         """Check if the FSM is completed."""
