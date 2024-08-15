@@ -42,6 +42,7 @@ class MooreFSM:
         temperature: float = 0.5,
         transitions: Dict[str, str] = {},
         response_model: Optional[BaseModel] = None,
+        pre_process_input: Optional[Callable] = None,
         pre_process_chat: Optional[Callable] = None,
         pre_process_system_prompt: Optional[Callable] = None,
     ):
@@ -52,6 +53,7 @@ class MooreFSM:
         :param temperature: Temperature for the completion
         :param transitions: Transitions to other states, defined by key-value pairs of next_state_key: condition
         :param response_model: Pydantic model for response parsing, default is None (ie give string response)
+        :param pre_process_input: Pre-process user input before sending to OpenAI API
         :param pre_process_chat: Pre-process chat history before sending to OpenAI API
         :param pre_process_system_prompt: Pre-process system prompt before sending to OpenAI API
         :type state_key: str
@@ -59,6 +61,7 @@ class MooreFSM:
         :type temperature: float
         :type transitions: Dict[str, str]
         :type response_model: BaseModel, optional
+        :type pre_process_input: Callable, optional
         :type pre_process_chat: Callable, optional
         :type pre_process_system_prompt: Callable, optional
         :return: Decorator function
@@ -99,6 +102,7 @@ class MooreFSM:
                 temperature=temperature,
                 transitions=transitions,
                 response_model=response_model,
+                pre_process_input=pre_process_input,
                 pre_process_chat=pre_process_chat,
                 pre_process_system_prompt=pre_process_system_prompt,
             )
@@ -143,7 +147,11 @@ class MooreFSM:
         # Get the current state
         current_state: MooreState = self._states.get(self._state, None)
         if not current_state:
-            raise StateMachineError(f"State {self._state} not found in states.")
+            logger.error(StateMachineError(f"State {self._state} not found in states."))
+
+        if current_state.pre_process_input:
+            user_input = current_state.pre_process_input(user_input, self) or user_input
+            logger.debug(f"Pre-processed user input: {user_input}")
 
         state_system_prompt = current_state.system_prompt
 
@@ -208,6 +216,11 @@ class MooreFSM:
                 response = current_state.response_model(**response)
             except ValidationError as e:
                 raise StateMachineError(f"Error in parsing response model: {e}")
+
+        # Check if next state key is valid
+        if next_state_key not in self._states:
+            logger.error(StateMachineError(f"Next state {next_state_key} not found in states, resetting to current state."))
+            next_state_key = current_state.key
 
         self._next_state = next_state_key
         cached_next_state = next_state_key

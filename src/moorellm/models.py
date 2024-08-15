@@ -13,6 +13,7 @@ class MooreState(pydantic.BaseModel):
     :param temperature: The temperature setting for the model's response generation.
     :param transitions: A dictionary mapping possible user inputs to the next state.
     :param response_model: The Pydantic model that will parse the AI's response, if provided.
+    :param pre_process_input: Optional callable for pre-processing the user input before running the state function.
     :param pre_process_chat: Optional callable for pre-processing the chat input before running the state function.
     :param pre_process_system_prompt: Optional callable for pre-processing the system prompt before it is sent.
 
@@ -22,6 +23,7 @@ class MooreState(pydantic.BaseModel):
     :type temperature: float
     :type transitions: dict[str, str]
     :type response_model: Type[BaseModel], optional
+    :type pre_process_input: Callable, optional
     :type pre_process_chat: Callable, optional
     :type pre_process_system_prompt: Callable, optional
 
@@ -34,6 +36,7 @@ class MooreState(pydantic.BaseModel):
     temperature: float
     transitions: dict[str, str]
     response_model: Optional[Type[BaseModel]]
+    pre_process_input: Optional[Callable]
     pre_process_chat: Optional[Callable]
     pre_process_system_prompt: Optional[Callable]
 
