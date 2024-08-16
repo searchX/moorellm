@@ -264,6 +264,9 @@ class MooreFSM:
         else:
             # TODO: Use guard rails to check if the transition is valid
             logger.debug(f"Transitioned to next state: {self._state}")
+            self._full_chat_history.append(
+                {"role": "moorellm", "content": f"Transitioned to next state: {self._state}"}
+            )
 
         self._next_state = None
 
