@@ -89,3 +89,8 @@ class StateMachineError(Exception):
     """
 
     pass
+
+
+class GuardrailResponse(BaseModel):
+    message: str
+    is_valid: bool
