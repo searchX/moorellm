@@ -33,6 +33,7 @@ class MooreFSM:
         self._end_state = end_state
         self._states = {}
         self._chat_history = []
+        self._full_chat_history = []
         self.user_defined_context = {}
 
     def state(
@@ -170,6 +171,7 @@ class MooreFSM:
 
         # Add user input to chat history
         self._chat_history.append({"role": "user", "content": user_input})
+        self._full_chat_history.append({"role": "user", "content": user_input})
 
         # First create a good chat history
         system_prompt_lined = {"role": "system", "content": processed_system_prompt}
@@ -252,12 +254,16 @@ class MooreFSM:
 
         # Add the response to chat history
         self._chat_history.append({"role": "assistant", "content": final_response_str})
+        self._full_chat_history.append({"role": "assistant", "content": final_response_str})
 
         # Update the state
         self._state = self._next_state
 
         if self._next_state != cached_next_state:
             logger.debug(f"Manually transitioned to next state: {self._state}")
+        else:
+            # TODO: Use guard rails to check if the transition is valid
+            logger.debug(f"Transitioned to next state: {self._state}")
 
         self._next_state = None
 
@@ -294,6 +300,15 @@ class MooreFSM:
     def get_chat_history(self):
         """Get the chat history."""
         return self._chat_history
+    
+    def set_chat_history(self, chat_history: list):
+        """Set the chat history."""
+        self._chat_history = chat_history
+        logger.debug(f"Chat history set: {chat_history}")
+
+    def get_full_chat_history(self):
+        """Get the full chat history."""
+        return self._full_chat_history
 
     def set_context_data(self, key: str, value: Any):
         """Set data into user defined context."""
