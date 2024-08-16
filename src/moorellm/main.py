@@ -34,6 +34,7 @@ class MooreFSM:
         self._states = {}
         self._chat_history = []
         self._full_chat_history = []
+        self._running_chat_history = []
         self.user_defined_context = {}
 
     def state(
@@ -169,17 +170,21 @@ class MooreFSM:
         processed_system_prompt = _add_transitions(state_system_prompt, current_state)
         logger.debug(f"Processed system prompt: {processed_system_prompt}")
 
+        # Make copy of chat history (this is to prevent duplication of messages when in pattern of call then cancel)
+        chat_history_copy = self._chat_history.copy()
+        full_chat_history_copy = self._full_chat_history.copy()
+
         # Add user input to chat history
-        self._chat_history.append({"role": "user", "content": user_input})
-        self._full_chat_history.append({"role": "user", "content": user_input})
+        chat_history_copy.append({"role": "user", "content": user_input})
+        full_chat_history_copy.append({"role": "user", "content": user_input})
 
         # First create a good chat history
         system_prompt_lined = {"role": "system", "content": processed_system_prompt}
-        chat_history_copy = [system_prompt_lined] + self._chat_history.copy()
+        chat_history_copy_executable = [system_prompt_lined] + chat_history_copy
 
         # Pre-process chat if needed
         if current_state.pre_process_chat:
-            chat_history_copy = current_state.pre_process_chat(chat_history_copy, self)
+            chat_history_copy_executable = current_state.pre_process_chat(chat_history_copy_executable, self)
 
         # Now let's try to call openai function
         logger.debug(f"Getting completion for model: {model}")
@@ -190,7 +195,7 @@ class MooreFSM:
 
         completion = await async_openai_instance.beta.chat.completions.parse(
             model=model,
-            messages=chat_history_copy,
+            messages=chat_history_copy_executable,
             response_format=output_response_model,
         )
 
@@ -225,7 +230,11 @@ class MooreFSM:
             next_state_key = current_state.key
 
         self._next_state = next_state_key
-        cached_next_state = next_state_key
+        cached_next_state = self._next_state
+
+        # Update the running chat history, ie this is for contexts
+        self._running_chat_history = chat_history_copy
+        cached_chat_history = chat_history_copy
 
         # Now we call function with all the details, but before that create function context params
         function_context = {
@@ -253,16 +262,24 @@ class MooreFSM:
         logger.debug(f"Final response: {final_response_str}")
 
         # Add the response to chat history
-        self._chat_history.append({"role": "assistant", "content": final_response_str})
-        self._full_chat_history.append({"role": "assistant", "content": final_response_str})
+        chat_history_copy.append({"role": "assistant", "content": final_response_str})
+        full_chat_history_copy.append({"role": "assistant", "content": final_response_str})
+
+        if self._running_chat_history != cached_chat_history:
+            logger.debug(f"Manually set chat history: {self._running_chat_history}")
+            self._chat_history = self._running_chat_history
+        else:
+            self._chat_history = chat_history_copy
+
+        self._full_chat_history = full_chat_history_copy
 
         # Update the state
+        previous_state = self._state
         self._state = self._next_state
 
         if self._next_state != cached_next_state:
             logger.debug(f"Manually transitioned to next state: {self._state}")
-        else:
-            # TODO: Use guard rails to check if the transition is valid
+        elif(self._state != previous_state):
             logger.debug(f"Transitioned to next state: {self._state}")
             self._full_chat_history.append(
                 {"role": "moorellm", "content": f"Transitioned to next state: {self._state}"}
@@ -301,13 +318,22 @@ class MooreFSM:
         logger.debug(f"Manually set next state: {self._next_state}")
 
     def get_chat_history(self):
-        """Get the chat history."""
+        """Get the chat history, not recommended to use, please use get_running_chat_history."""
         return self._chat_history
     
     def set_chat_history(self, chat_history: list):
-        """Set the chat history."""
+        """Set the chat history, not recommended to use, please use set_running_chat_history."""
         self._chat_history = chat_history
         logger.debug(f"Chat history set: {chat_history}")
+
+    def get_running_chat_history(self):
+        """Get the running chat history."""
+        return self._running_chat_history
+    
+    def set_running_chat_history(self, chat_history: list):
+        """Set the running chat history."""
+        self._running_chat_history = chat_history
+        logger.debug(f"Running chat history set: {chat_history}")
 
     def get_full_chat_history(self):
         """Get the full chat history."""
