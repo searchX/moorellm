@@ -120,7 +120,7 @@ asyncio.run(main())
 
 States:
 - START: The initial state where the AI asks the user if they want to turn on the light.
-- STATE_ON: The state where the AI turns, only avaliable transition at this state is to turn off the light.
+- STATE_ON: The state where the AI turns, only available transition at this state is to turn off the light.
 
 Notice the transitions, for state `start` we defined only one transition to `STATE_ON`, and for state `STATE_ON` we defined only one transition to `START`, this way the AI can only move from `start` to `STATE_ON` and then from `STATE_ON` to `start` and not any other state.
 
