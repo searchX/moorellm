@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger("moorellm")
 
 from moorellm.utils import _add_transitions, _create_response_model
-from moorellm.models import MooreRun, MooreState, DefaultResponse, StateMachineError
+from moorellm.models import MooreRun, MooreState, DefaultResponse, StateMachineError, ImmediateStateChange
 
 
 class MooreFSM:
@@ -246,6 +246,13 @@ class MooreFSM:
 
         # Call the function
         final_response = await current_state.func(**function_context)
+        if isinstance(final_response, ImmediateStateChange):
+            self._state = final_response.next_state
+            new_user_input = final_response.input
+            logger.debug(f"Urgent shifting to: {self._next_state} and recreating response..")
+            return await self.run(async_openai_instance, new_user_input, model, *args, **kwargs)
+
+    
         final_response_str = ""
         if final_response:
             # Add the response to chat history

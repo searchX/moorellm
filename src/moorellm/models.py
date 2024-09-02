@@ -94,3 +94,10 @@ class StateMachineError(Exception):
 class GuardrailResponse(BaseModel):
     message: str
     is_valid: bool
+
+class ImmediateStateChange(BaseModel):
+    """
+    Change the state immediately without running the current state function.
+    """
+    next_state: str
+    input: str = "Hey"
