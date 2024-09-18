@@ -60,34 +60,34 @@ async def test_immediete_state_transition(
         system_prompt="After this Change state but not immediately",
         transitions={
             "CHANGE_NOT_IMMEDIATE": "change not immediately",
-            "CHANGE_IMMEDIATE": "Changing state immediately"
+            "CHANGE_IMMEDIATE": "Changing state immediately",
         },
     )
     async def start_state(fsm: MooreFSM, response: str, will_transition: bool):
-        if (will_transition and fsm.get_next_state() == "CHANGE_IMMEDIATE"):
+        if will_transition and fsm.get_next_state() == "CHANGE_IMMEDIATE":
             # Logic to do urgent state change with response from next state :)
             return ImmediateStateChange(next_state="CHANGE_IMMEDIATE")
 
         return "I REPLIED FROM START_STATE"
-    
+
     @fsm.state(
         state_key="CHANGE_NOT_IMMEDIATE",
         system_prompt="Change state but not immediately",
-        transitions={
-            "START": "Change to start state"
-        },
+        transitions={"START": "Change to start state"},
     )
-    async def change_not_immediate_state(fsm: MooreFSM, response: str, will_transition: bool):
+    async def change_not_immediate_state(
+        fsm: MooreFSM, response: str, will_transition: bool
+    ):
         return "I REPLIED FROM CHANGE_NOT_IMMEDIATE_STATE"
-    
+
     @fsm.state(
         state_key="CHANGE_IMMEDIATE",
         system_prompt="Change state immediately",
-        transitions={
-            "START": "Change to start state"
-        },
+        transitions={"START": "Change to start state"},
     )
-    async def change_immediate_state(fsm: MooreFSM, response: str, will_transition: bool):
+    async def change_immediate_state(
+        fsm: MooreFSM, response: str, will_transition: bool
+    ):
         return "I REPLIED FROM CHANGE_IMMEDIATE_STATE"
 
     set_openai_response(

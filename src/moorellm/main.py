@@ -10,7 +10,13 @@ import logging
 logger = logging.getLogger("moorellm")
 
 from moorellm.utils import _add_transitions, _create_response_model
-from moorellm.models import MooreRun, MooreState, DefaultResponse, StateMachineError, ImmediateStateChange
+from moorellm.models import (
+    MooreRun,
+    MooreState,
+    DefaultResponse,
+    StateMachineError,
+    ImmediateStateChange,
+)
 
 
 class MooreFSM:
@@ -184,7 +190,9 @@ class MooreFSM:
 
         # Pre-process chat if needed
         if current_state.pre_process_chat:
-            chat_history_copy_executable = current_state.pre_process_chat(chat_history_copy_executable, self)
+            chat_history_copy_executable = current_state.pre_process_chat(
+                chat_history_copy_executable, self
+            )
 
         # Now let's try to call openai function
         logger.debug(f"Getting completion for model: {model}")
@@ -226,7 +234,11 @@ class MooreFSM:
 
         # Check if next state key is valid
         if next_state_key not in self._states:
-            logger.error(StateMachineError(f"Next state {next_state_key} not found in states, resetting to current state."))
+            logger.error(
+                StateMachineError(
+                    f"Next state {next_state_key} not found in states, resetting to current state."
+                )
+            )
             next_state_key = current_state.key
 
         self._next_state = next_state_key
@@ -249,10 +261,13 @@ class MooreFSM:
         if isinstance(final_response, ImmediateStateChange):
             self._state = final_response.next_state
             new_user_input = final_response.input
-            logger.debug(f"Urgent shifting to: {self._next_state} and recreating response..")
-            return await self.run(async_openai_instance, new_user_input, model, *args, **kwargs)
+            logger.debug(
+                f"Urgent shifting to: {self._next_state} and recreating response.."
+            )
+            return await self.run(
+                async_openai_instance, new_user_input, model, *args, **kwargs
+            )
 
-    
         final_response_str = ""
         if final_response:
             # Add the response to chat history
@@ -270,7 +285,9 @@ class MooreFSM:
 
         # Add the response to chat history
         chat_history_copy.append({"role": "assistant", "content": final_response_str})
-        full_chat_history_copy.append({"role": "assistant", "content": final_response_str})
+        full_chat_history_copy.append(
+            {"role": "assistant", "content": final_response_str}
+        )
 
         if self._running_chat_history != cached_chat_history:
             logger.debug(f"Manually set chat history: {self._running_chat_history}")
@@ -286,10 +303,13 @@ class MooreFSM:
 
         if self._next_state != cached_next_state:
             logger.debug(f"Manually transitioned to next state: {self._state}")
-        elif(self._state != previous_state):
+        elif self._state != previous_state:
             logger.debug(f"Transitioned to next state: {self._state}")
             self._full_chat_history.append(
-                {"role": "moorellm", "content": f"Transitioned to next state: {self._state}"}
+                {
+                    "role": "moorellm",
+                    "content": f"Transitioned to next state: {self._state}",
+                }
             )
 
         self._next_state = None
@@ -327,7 +347,7 @@ class MooreFSM:
     def get_chat_history(self):
         """Get the chat history, not recommended to use, please use get_running_chat_history."""
         return self._chat_history
-    
+
     def set_chat_history(self, chat_history: list):
         """Set the chat history, not recommended to use, please use set_running_chat_history."""
         self._chat_history = chat_history
@@ -336,7 +356,7 @@ class MooreFSM:
     def get_running_chat_history(self):
         """Get the running chat history."""
         return self._running_chat_history
-    
+
     def set_running_chat_history(self, chat_history: list):
         """Set the running chat history."""
         self._running_chat_history = chat_history
