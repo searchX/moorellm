@@ -123,6 +123,7 @@ class MooreFSM:
         async_openai_instance: Union[openai.AsyncAzureOpenAI, openai.AsyncOpenAI],
         user_input: str,
         model: str = "gpt-4o-2024-08-06",
+        is_generator: bool = False,
         *args,
         **kwargs,
     ) -> MooreRun:
@@ -264,9 +265,16 @@ class MooreFSM:
             logger.debug(
                 f"Urgent shifting to: {self._next_state} and recreating response.."
             )
-            return await self.run(
+            self._is_urgent_shift = True
+            moore_run_chained = await self.run(
                 async_openai_instance, new_user_input, model, *args, **kwargs
             )
+            self._is_urgent_shift = False
+            if final_response.keep_original_response:
+                final_response_str = response + final_response.keep_original_seperator + moore_run_chained.response
+                moore_run_chained.response = final_response_str
+
+            return moore_run_chained
 
         final_response_str = ""
         if final_response:
@@ -387,3 +395,7 @@ class MooreFSM:
     def is_completed(self):
         """Check if the FSM is completed."""
         return self._state == self._end_state
+
+    def is_urgent_shift(self):
+        """Check if the FSM is in urgent shift."""
+        return self._is_urgent_shift

@@ -103,3 +103,5 @@ class ImmediateStateChange(BaseModel):
 
     next_state: str
     input: str = "Hey"
+    keep_original_response: bool = False # If true, the original response will be preserved and prepended to the new response.
+    keep_original_seperator: str = " " # Seperator to use between original and new response

@@ -65,8 +65,9 @@ async def test_immediete_state_transition(
     )
     async def start_state(fsm: MooreFSM, response: str, will_transition: bool):
         if will_transition and fsm.get_next_state() == "CHANGE_IMMEDIATE":
+            # Keep original response from cntxt and prepend to new response
             # Logic to do urgent state change with response from next state :)
-            return ImmediateStateChange(next_state="CHANGE_IMMEDIATE")
+            return ImmediateStateChange(next_state="CHANGE_IMMEDIATE", keep_original_response=fsm.get_context_data("keeporig", False))
 
         return "I REPLIED FROM START_STATE"
 
@@ -104,7 +105,7 @@ async def test_immediete_state_transition(
     fsm._state = "START"
 
     set_openai_response(
-        openai_mock, DefaultResponse(content=""), next_state="CHANGE_IMMEDIATE"
+        openai_mock, DefaultResponse(content="ORIGINAL RESPONSE"), next_state="CHANGE_IMMEDIATE"
     )
 
     # Now test the transitions in case immediate state change
@@ -112,3 +113,13 @@ async def test_immediete_state_transition(
     assert run_state.state == "CHANGE_IMMEDIATE"
     # Now it should reply from the immediate state
     assert run_state.response == "I REPLIED FROM CHANGE_IMMEDIATE_STATE"
+
+    # For sake of test, set the next state to be main again
+    fsm._state = "START"
+    # Keep original response from cntxt and prepend to new response
+    fsm.set_context_data("keeporig", True)
+    # Run it again
+    run_state: MooreRun = await fsm.run(openai_client, user_input="Hello")
+    assert run_state.state == "CHANGE_IMMEDIATE"
+    # Now it should reply from the immediate state
+    assert run_state.response == "ORIGINAL RESPONSE I REPLIED FROM CHANGE_IMMEDIATE_STATE"
