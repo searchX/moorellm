@@ -1,6 +1,6 @@
 [project]
 name = "MooreLLM"
-version = "0.1.7"
+version = "0.1.8"
 description = "Moore's State Machine based Agent LLMs"
 authors = [
     {name = "Harishankar Kumar", email = "hari01584@gmail.com"},
@@ -30,6 +30,8 @@ dev = [
     "piccolo-theme>=0.23.0",
     "m2r2>=0.3.3.post2",
     "myst-parser>=3.0.1",
+    "cerebras-cloud-sdk>=1.12.1",
+    "instructor[cerebras_cloud_sdk]>=1.6.4",
 ]
 
 [tool.pdm]

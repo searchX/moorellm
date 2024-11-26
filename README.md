@@ -192,6 +192,46 @@ AI: Thanks for Identifying yourself.
 User Identified: {'user_name': 'Harishankar', 'phone_number': '1234567890'}
 ```
 
+## (NEW) Support all LLMs including Gemini, Vertex AI, Claude, Anthrophic, Llama, Cerebral using Instruct API
+Thank you @InstructorAI for the awesome work in https://github.com/instructor-ai/instructor, Initially MooreLLM was designed to work with OpenAI's GPT-4o+ only, but now with the help of Instructor API, MooreLLM can work with all LLMs including Gemini, Vertex AI, Claude, Anthrophic, Llama, Cerebral.. (By adding support for response_model from Instructor)
+
+How to use a Custom LLM? Simple! See example below with Cerebras AI
+```python
+async def _cerebras_get_completion(
+    cerebras_instance: Union[AsyncCerebras],
+    chat_history: List[dict],
+    response_model: Type[BaseModel],
+    llm_model: str,
+):
+    # Override the get_completion method to use Cerebras AI
+    # You just have to return valid dict which is dump of response_model format filled with the completion data
+    try:        
+        # Create chat completion asynchronously
+        completion = await cerebras_instance.chat.completions.create(
+            model=llm_model,
+            messages=chat_history,
+            response_model=response_model,
+        )
+        
+        if not completion:
+            raise CerebrasError("No completion returned from the Cerebras client.")
+
+        return completion.model_dump()  # The response is already parsed into the specified model
+
+    except Exception as e:
+        raise CerebrasError(f"Error in fetching or parsing the completion: {str(e)}")
+
+
+fsm.override_get_completion(_cerebras_get_completion)
+
+# Also here is cerbras client with instructor
+cerebras_client = AsyncCerebras()
+client = instructor.from_cerebras(cerebras_client)
+
+#.. See full file in examples directory
+```
+
+
 More examples can be found in the [examples](examples) directory.
 
 ## Full Documentation
@@ -200,7 +240,7 @@ The full documentation can be found [here](https://searchx.github.io/moorellm/)
 ## Notes
 - The MooreLLM is a very basic implementation, and can be extended to support more complex use-cases.
 - The FSM is designed to be used with OpenAI's GPT-4o+ (as it uses structured responses), but can be used with any other model as well (with some modification).
-- Possibility of bad return json is non-existent, this is because we are using the latest structured responses from OpenAI, and the MooreLLM is designed to handle only structured responses.
+- Possibility of bad return json is non-existent, this is because we are using the latest structured responses from OpenAI, and the MooreLLM is designed to handle only structured responses, in case of custom providers, well no guarantees :)
 
 ## Contributing
 MooreLLM at its current state is a very basic implementation, and very opinionated.. I would love to see more contributions and ideas on how to make it more flexible and useful for a wider range of applications, any PRs are welcome!# moorellm

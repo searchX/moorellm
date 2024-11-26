@@ -31,6 +31,27 @@ class MooreFSM:
     :rtype: :class:`moorellm.main.MooreFSM`
     """
 
+    async def _default_get_completion(
+        self,
+        async_openai_instance: Union[openai.AsyncAzureOpenAI, openai.AsyncOpenAI],
+        chat_history: list,
+        response_model: Type[BaseModel],
+        llm_model: str,
+    ):
+        completion = await async_openai_instance.beta.chat.completions.parse(
+            model=llm_model,
+            messages=chat_history,
+            response_format=response_model,
+        )
+        
+        message = completion.choices[0].message
+        if not message.parsed:
+            raise StateMachineError(
+                f"Error in parsing the completion: {message.refusal}"
+            )
+
+        return message.parsed.model_dump()
+
     def __init__(self, initial_state: str, end_state: str = "END"):
         """Initialize the Moore FSM with initial state and end state"""
         self._state = initial_state
@@ -42,6 +63,38 @@ class MooreFSM:
         self._full_chat_history = []
         self._running_chat_history = []
         self.user_defined_context = {}
+        
+        self._get_completion = self._default_get_completion
+
+    def override_get_completion(self, get_completion: Callable):
+        """Override the get completion function with custom function,
+        the result should be dictionary with response and next_state_key.
+
+        :param get_completion: Custom function to get completion
+        :type get_completion: Callable
+        :return: None
+        :rtype: None
+
+        .. code-block:: python
+
+            async def custom_get_completion(async_openai_instance, chat_history, response_model, llm_model):
+                return await async_openai_instance.beta.chat.completions.parse(
+                    model=llm_model,
+                    messages=chat_history,
+                    response_format=response_model,
+                )
+                        
+                message = completion.choices[0].message
+                if not message.parsed:
+                    raise StateMachineError(
+                        f"Error in parsing the completion: {message.refusal}"
+                    )
+
+                return message.parsed.model_dump()
+
+            fsm.override_get_completion(custom_get_completion)
+        """
+        self._get_completion = get_completion
 
     def state(
         self,
@@ -202,20 +255,15 @@ class MooreFSM:
             current_state.response_model, current_state.transitions, current_state.key
         )
 
-        completion = await async_openai_instance.beta.chat.completions.parse(
-            model=model,
-            messages=chat_history_copy_executable,
-            response_format=output_response_model,
+        completion_res_in_dict = await self._get_completion(
+            async_openai_instance,
+            chat_history_copy_executable,
+            output_response_model,
+            model,
         )
 
-        message = completion.choices[0].message
-        if not message.parsed:
-            raise StateMachineError(
-                f"Error in parsing the completion: {message.refusal}"
-            )
-
         # Extract the response and next state key
-        response_dict = message.parsed.model_dump()
+        response_dict = completion_res_in_dict
 
         # Default to current state if no next state key
         next_state_key = response_dict.get("next_state_key", current_state.key)
