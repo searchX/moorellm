@@ -63,6 +63,7 @@ class MooreFSM:
         self._full_chat_history = []
         self._running_chat_history = []
         self.user_defined_context = {}
+        self._is_urgent_shift = False
         
         self._get_completion = self._default_get_completion
 
